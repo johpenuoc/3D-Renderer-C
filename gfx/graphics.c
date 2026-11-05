@@ -7,7 +7,7 @@
 
 float triangle_area(float *p1, float *p2, float *p3)
 {
-    return abs((p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1])) / 2);
+    return fabsf((p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1])) / 2);
 }
 
 float min(float *arr, int arrlen)
@@ -64,9 +64,10 @@ void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, float *p1, float *
     float a3;
     float a4;
     
-    for (float x = minx; x < maxx; x += 1.0f)
+    //for (float y = miny; y < (maxy + 1.0f); ++y)
+    for (float y = miny; y < maxy; ++y)
         {
-            for (float y = miny; y < maxy; y += 1.0f)
+            for (float x = minx; x < maxx; ++x)
                 {
                     float point[2] = { x, y };
                     float *ptr;
@@ -76,9 +77,10 @@ void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, float *p1, float *
                     a3 = triangle_area(ptr, p2, p3);
                     a4 = triangle_area(ptr, p1, p3);
                     
-                    if ((int)(a2 + a3 + a4) == (int)a1)
+                    if (fabsf((a2 + a3 + a4) - a1) < 0.1f)
                         {
                             pix_array[((int)y * 1280) + (int)x] = 0xFF0000FF;
+                            //pix_array[((((int)y) + 1) * 1280) + (int)x] //= 0xFF0000FF;
                         }
                 }
         }

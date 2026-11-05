@@ -1,9 +1,8 @@
 # ninja log v7
-31	359	8155355734068794	CMakeFiles/main.dir/gfx/graphics.c.obj	93c4167aee34372a
-20	351	8155386942738391	CMakeFiles/main.dir/src/main.c.obj	33ad9b433b0533b8
-369	460	8155357824820997	main.exe	bd61180feb826bcd
+43	364	8155420254425186	CMakeFiles/main.dir/gfx/graphics.c.obj	93c4167aee34372a
+43	375	8155406219710634	CMakeFiles/main.dir/src/main.c.obj	33ad9b433b0533b8
+365	439	8155420257622201	main.exe	bd61180feb826bcd
 49	95	8155357821617800	CMakeFiles/main.dir/coms/commons.c.obj	e0a9c96681d27cb0
 34	85	8155355734068794	CMakeFiles/main.dir/cam/camera.c.obj	bac645d3cc2fcd6f
-46	387	8155388026317064	CMakeFiles/main.dir/src/main.c.obj	33ad9b433b0533b8
-49	390	8155388026368139	CMakeFiles/main.dir/gfx/graphics.c.obj	93c4167aee34372a
-390	490	8155388029760444	main.exe	bd61180feb826bcd
+48	366	8155420448855699	CMakeFiles/main.dir/gfx/graphics.c.obj	93c4167aee34372a
+367	440	8155420452047760	main.exe	bd61180feb826bcd
