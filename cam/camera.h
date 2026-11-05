@@ -11,4 +11,6 @@ typedef struct Cam
     int speed;
 }Cam;
 
+void camera_movement(Cam *camera);
+
 #endif

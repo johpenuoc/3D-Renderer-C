@@ -54,13 +54,13 @@ int main(int argc, char* argv[])
         camera.yrot = 0;
         camera.speed = 70;
         
-        float p1[2] = { 50, 50 };
-        float p2[2] = { 100, 100 };
-        float p3[2] = { 25, 150 };
-        
-        float *p1_ptr = &p1[0];
-        float *p2_ptr = &p2[0];
-        float *p3_ptr = &p3[0];
+        // Initialize cube
+        float width = 50.0f;
+        float height = 50.0f;
+        float depth = 50.0f;
+        Mesh cube = create_cube(width, height, depth, 50.0f, 50.0f, 150.0f);
+        Vector3 verts[cube.verts_count];
+        Vector3 *verts_ptr = &verts;
         
         Uint64 prevt = SDL_GetTicks();
         bool is_running = true;
@@ -83,13 +83,18 @@ int main(int argc, char* argv[])
                     
                 // const bool *keystate = SDL_GetKeyboardState(NULL);
                 
+                camera_movement(&camera);
+                vertex_processing(&cube, &camera, verts_ptr);
+                
                     
                         
                     
                 SDL_SetRenderDrawColor(renderer, 210, 210, 210, 255);
                 SDL_RenderClear(renderer);
                 
-                shader(framebuffer, renderer, p1_ptr, p2_ptr, p3_ptr);
+                render(framebuffer, renderer, &cube, verts_ptr);
+                
+                //shader(framebuffer, renderer, p1_ptr, p2_ptr, p3_ptr);
             
                 SDL_RenderPresent(renderer);
             }
