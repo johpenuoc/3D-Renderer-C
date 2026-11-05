@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
         camera.pos.z = 100.0f;
         camera.xrot = 0.0f;
         camera.yrot = 0.0f;
-        camera.speed = 70.0f;
+        camera.speed = 150.0f;
         
         // Initialize cube
         float width = 50.0f;
@@ -71,6 +71,7 @@ int main(int argc, char* argv[])
         
         while (is_running)
             {
+                printf("%f\n", camera.xrot);
                 Uint64 currt = SDL_GetTicks();
                 
                 float dt = (float)(currt - prevt) / 1000.0f;

@@ -56,6 +56,9 @@ void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, Vector2 *p1, Vecto
     float maxx = max(xs_ptr, 3);
     float miny = min(ys_ptr, 3);
     float maxy = max(ys_ptr, 3);
+    
+    if (minx < 0.0f || minx > 1280.0f || maxx < 0.0f || maxx > 1280.0f || miny < 0.0f || miny > 720.0f || maxy < 0.0f || maxy > 720.0f) return;
+    
     int premx = (int)maxx - minx;
     int premy = (int)maxy - miny;
     
@@ -64,19 +67,20 @@ void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, Vector2 *p1, Vecto
     float a3;
     float a4;
     
+    a1 = triangle_area(p1, p2, p3);
+    
     for (float x = minx; x < maxx; ++x)
         {
             for (float y = miny; y < maxy; ++y)
                 {
                     Vector2 point = { .p = { x, y } };
-                    a1 = triangle_area(p1, p2, p3);
                     a2 = triangle_area(&point, p1, p2);
                     a3 = triangle_area(&point, p2, p3);
                     a4 = triangle_area(&point, p1, p3);
                     
                     int _y = (int)y;
                     int _x = (int)x; 
-                    if (fabsf((a2 + a3 + a4) - a1) < 0.1f && _y > 0 && _y < 720 && _x > 0 && _x < 1280)
+                    if (fabsf((a2 + a3 + a4) - a1) < 0.1f)
                         {
                             pix_array[(_y * 1280) + _x] = 0xFF0000FF;
                         }
@@ -165,23 +169,23 @@ void render(SDL_Texture *framebuffer, SDL_Renderer *renderer, Mesh *mesh, Vector
                     int i1 = mesh->indexes[i - 1];
                     int i2 = mesh->indexes[i - 2];
                     
+                    
                     Vector3 p1 = new_verts[i0];
-                    Vector2 tmp1 = translate_Z(p1.x, p1.y, p1.z);
-                    Vector2 r1 = translate_coord(tmp1.p[0], tmp1.p[1]);
-                    
                     Vector3 p2 = new_verts[i1];
-                    Vector2 tmp2 = translate_Z(p2.x, p2.y, p2.z);
-                    Vector2 r2 = translate_coord(tmp2.p[0], tmp2.p[1]);
-                    
                     Vector3 p3 = new_verts[i2];
-                    Vector2 tmp3 = translate_Z(p3.x, p3.y, p3.z);
-                    Vector2 r3 = translate_coord(tmp3.p[0], tmp3.p[1]);
-                    
-                    if (!(p1.z <= 0.1f && p2.z <= 0.1f && p3.z <= 0.1f))
+                    if (!(p1.z <= 0.1f || p2.z <= 0.1f || p3.z <= 0.1f))
                         {
-                           shader(framebuffer, renderer, &r1, &r2, &r3, pix_array); 
+                            Vector2 tmp1 = translate_Z(p1.x, p1.y, p1.z);
+                            Vector2 r1 = translate_coord(tmp1.p[0], tmp1.p[1]);
+                            
+                            Vector2 tmp2 = translate_Z(p2.x, p2.y, p2.z);
+                            Vector2 r2 = translate_coord(tmp2.p[0], tmp2.p[1]);
+                            
+                            Vector2 tmp3 = translate_Z(p3.x, p3.y, p3.z);
+                            Vector2 r3 = translate_coord(tmp3.p[0], tmp3.p[1]);
+                            
+                            shader(framebuffer, renderer, &r1, &r2, &r3, pix_array);
                         }
-                    //shader(framebuffer, renderer, &r1, &r2, &r3);
                     
                 }
         }
