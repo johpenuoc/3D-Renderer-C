@@ -15,8 +15,14 @@ typedef struct Vector2
 
 typedef struct Mesh
 {
-    Vector3 verts[8];
-    int indexes[36];
+    Vector3 verts[100];
+    int verts_count;
+    
+    Vector3 centre;
+    
+    int indexes[300];
+    int indexes_count;
+    
 }Mesh;
 
 Mesh create_cube(float width, float height, float depth, float cenx, float ceny, float cenz);

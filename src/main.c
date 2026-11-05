@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
         float depth = 50.0f;
         Mesh cube = create_cube(width, height, depth, 50.0f, 50.0f, 150.0f);
         Vector3 verts[cube.verts_count];
-        Vector3 *verts_ptr = &verts;
+        Vector3 *verts_ptr = verts;
         
         Uint64 prevt = SDL_GetTicks();
         bool is_running = true;
