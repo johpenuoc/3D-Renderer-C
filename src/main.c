@@ -16,8 +16,8 @@ int main(int argc, char* argv[])
     
         SDL_Window *window = SDL_CreateWindow(
             "SDL3 Window",
-            800,
-            600,
+            1280,
+            720,
             0
         );
         
@@ -47,24 +47,27 @@ int main(int argc, char* argv[])
         
         // Initialize camera
         Cam camera;
-        camera.pos.x = 50;
-        camera.pos.y = 0;
-        camera.pos.z = 50;
-        camera.xrot = 0;
-        camera.yrot = 0;
-        camera.speed = 70;
+        camera.pos.x = 200.0f;
+        camera.pos.y = 0.0f;
+        camera.pos.z = 100.0f;
+        camera.xrot = 0.0f;
+        camera.yrot = 0.0f;
+        camera.speed = 70.0f;
         
         // Initialize cube
         float width = 50.0f;
         float height = 50.0f;
         float depth = 50.0f;
-        Mesh cube = create_cube(width, height, depth, 50.0f, 50.0f, 150.0f);
+        Mesh cube = create_cube(width, height, depth, 200.0f, 0.0f, 200.0f);
         Vector3 verts[cube.verts_count];
         Vector3 *verts_ptr = verts;
         
         Uint64 prevt = SDL_GetTicks();
         bool is_running = true;
         SDL_Event event;
+        
+        SDL_SetWindowFullscreen(window, true);
+        SDL_SetWindowRelativeMouseMode(window, true);
         
         while (is_running)
             {
@@ -79,12 +82,21 @@ int main(int argc, char* argv[])
                             {
                               is_running = false;  
                             }
+                        
+                        else if (event.type == SDL_EVENT_KEY_DOWN)
+                        {
+                            if (event.key.scancode == SDL_SCANCODE_ESCAPE)
+                                {
+                                    is_running = false;
+                                }
+                        }
                     }
                     
                 // const bool *keystate = SDL_GetKeyboardState(NULL);
                 
-                camera_movement(&camera);
+                camera_movement(&camera, dt);
                 vertex_processing(&cube, &camera, verts_ptr);
+                //SDL_WarpMouseInWindow(window, (float)1280 / 2, (float)720 / 2);
                 
                     
                         
@@ -93,6 +105,7 @@ int main(int argc, char* argv[])
                 SDL_RenderClear(renderer);
                 
                 render(framebuffer, renderer, &cube, verts_ptr);
+                
                 
                 //shader(framebuffer, renderer, p1_ptr, p2_ptr, p3_ptr);
             

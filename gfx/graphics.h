@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
+#include <stdint.h>
 #include "coms/commons.h"
 
 struct SDL_Texture;
@@ -11,7 +12,7 @@ struct Cam;
 float triangle_area(Vector2 *p1, Vector2 *p2, Vector2 *p3);
 float min(float *arr, int arrlen);
 float max(float *arr, int arrlen);
-void shader(struct SDL_Texture *framebuffer, struct SDL_Renderer *render, Vector2 *p1, Vector2 *p2, Vector2 *p3);
+void shader(struct SDL_Texture *framebuffer, struct SDL_Renderer *render, Vector2 *p1, Vector2 *p2, Vector2 *p3, uint32_t *pix_array);
 Vector2 yrotate(float x, float z, float theta);
 Vector2 xrotate(float y, float z, float theta);
 Vector2 translate_Z(float x, float y, float z);

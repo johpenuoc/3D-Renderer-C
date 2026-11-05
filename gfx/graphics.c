@@ -2,6 +2,8 @@
 #include <SDL3/SDL.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
 
 #include "coms/commons.h"
 #include "cam/camera.h"
@@ -41,13 +43,8 @@ float max(float *arr, int arrlen)
     return curr;
 }
 
-void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, Vector2 *p1, Vector2 *p2, Vector2 *p3)
+void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, Vector2 *p1, Vector2 *p2, Vector2 *p3, uint32_t *pix_array)
 {
-    void *pixels;
-    int p;
-    SDL_LockTexture(framebuffer, NULL, &pixels, &p);
-    
-    uint32_t *pix_array = (uint32_t *)pixels;
     
     float xs[3] = { p1->p[0], p2->p[0], p3->p[0] };
     float ys[3] = { p1->p[1], p2->p[1], p3->p[1] };
@@ -77,15 +74,14 @@ void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, Vector2 *p1, Vecto
                     a3 = triangle_area(&point, p2, p3);
                     a4 = triangle_area(&point, p1, p3);
                     
-                    if (fabsf((a2 + a3 + a4) - a1) < 0.1f)
+                    int _y = (int)y;
+                    int _x = (int)x; 
+                    if (fabsf((a2 + a3 + a4) - a1) < 0.1f && _y > 0 && _y < 720 && _x > 0 && _x < 1280)
                         {
-                            pix_array[((int)y * 1280) + (int)x] = 0xFF0000FF;
+                            pix_array[(_y * 1280) + _x] = 0xFF0000FF;
                         }
                 }
         }
-    
-    SDL_UnlockTexture(framebuffer);
-    SDL_RenderTexture(renderer, framebuffer, NULL, NULL);
     
 }
 
@@ -94,8 +90,8 @@ Vector2 yrotate(float x, float z, float theta)
     float c = cosf(RADIANS(theta));
     float s = sinf(RADIANS(theta));
     
-    float _x = (x * c) - (z * c);
-    float _z = (x * s) - (z * c);
+    float _x = (x * c) - (z * s);
+    float _z = (x * s) + (z * c);
     
     return (Vector2){ .p = { _x, _z } };
 }
@@ -105,8 +101,8 @@ Vector2 xrotate(float y, float z, float theta)
     float c = cosf(RADIANS(theta));
     float s = sinf(RADIANS(theta));
     
-    float _y = (y * c) - (z * c);
-    float _z = (y * s) - (z * c);
+    float _y = (y * c) - (z * s);
+    float _z = (y * s) + (z * c);
     
     return (Vector2){ .p = { _y, _z } };
 }
@@ -127,8 +123,8 @@ Vector2 translate_coord(float x, float y)
      return (Vector2){
         .p = 
          {
-             x + (1280 / 2),
-             y + (720 / 2)
+             x + (float)(1280 / 2),
+             y + (float)(720 / 2)
          }
     };
 }
@@ -137,9 +133,9 @@ void vertex_processing(Mesh *mesh, Cam *camera, Vector3 new_verts[])
 {
     for (int i = 0; i < mesh->verts_count; ++i)
         {
-            float perspx = camera->pos.x - mesh->verts[i].x + mesh->centre.x;
-            float perspy = camera->pos.y - mesh->verts[i].y + mesh->centre.y;
-            float perspz = camera->pos.z - mesh->verts[i].z + mesh->centre.z;
+            float perspx = (mesh->verts[i].x + mesh->centre.x) - (camera->pos.x);
+            float perspy = (mesh->verts[i].y + mesh->centre.y) - (camera->pos.y);
+            float perspz = (mesh->verts[i].z + mesh->centre.z) - (camera->pos.z);
             
             // returns x, z
             Vector2 _yrot = yrotate(perspx, perspz, camera->xrot);
@@ -154,6 +150,12 @@ void vertex_processing(Mesh *mesh, Cam *camera, Vector3 new_verts[])
 
 void render(SDL_Texture *framebuffer, SDL_Renderer *renderer, Mesh *mesh, Vector3 new_verts[])
 {
+    
+    void *pixels;
+    int p;
+    SDL_LockTexture(framebuffer, NULL, &pixels, &p);
+    
+    uint32_t *pix_array = (uint32_t *)pixels;
     
     for (int i = 0; i < mesh->indexes_count; ++i)
         {
@@ -175,8 +177,15 @@ void render(SDL_Texture *framebuffer, SDL_Renderer *renderer, Mesh *mesh, Vector
                     Vector2 tmp3 = translate_Z(p3.x, p3.y, p3.z);
                     Vector2 r3 = translate_coord(tmp3.p[0], tmp3.p[1]);
                     
-                    shader(framebuffer, renderer, &r1, &r2, &r3);
+                    if (!(p1.z <= 0.1f && p2.z <= 0.1f && p3.z <= 0.1f))
+                        {
+                           shader(framebuffer, renderer, &r1, &r2, &r3, pix_array); 
+                        }
+                    //shader(framebuffer, renderer, &r1, &r2, &r3);
                     
                 }
         }
+        
+    SDL_UnlockTexture(framebuffer);
+    SDL_RenderTexture(renderer, framebuffer, NULL, NULL);
 }
