@@ -19,5 +19,9 @@ Vector2 translate_Z(float x, float y, float z);
 Vector2 translate_coord(float x, float y);
 void vertex_processing(struct Mesh *mesh, struct Cam *camera, Vector3 new_verts[]);
 void render(struct SDL_Texture *framebuffer, struct SDL_Renderer *renderer, struct Mesh *mesh, Vector3 new_verts[]);
+LineEqu line_equation(float x1, float y1, float x2, float y2);
+float find_x(LineEqu *le, float y);
+float find_y(LineEqu *le, float x);
+Points2 get_points(Vector2 *p1, Vector2 *p2, Vector2 *op3);
 
 #endif

@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "coms/commons.h"
-#include "cam/camera.h"
+#include "cam/camera.h"\
 
 #define RADIANS(angle) ((angle) * (3.14159 / 180.0f))
 
@@ -57,10 +58,18 @@ void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, Vector2 *p1, Vecto
     float miny = min(ys_ptr, 3);
     float maxy = max(ys_ptr, 3);
     
-    if (minx < 0.0f || minx > 1280.0f || maxx < 0.0f || maxx > 1280.0f || miny < 0.0f || miny > 720.0f || maxy < 0.0f || maxy > 720.0f) return;
+    //a;lksdflkajfl;kajdfkl;jasl;fkd
     
-    int premx = (int)maxx - minx;
-    int premy = (int)maxy - miny;
+    //if (minx < 0.0f || maxx > 1280.0f || miny < 0.0f || maxy > 720.0f) return;
+    if (minx != minx || maxx != maxx || miny != miny || maxy != maxy) return;
+    //if ((xs[0] < 0.0f || xs[0] > 1280.0f || ys[0] < 0.0f || ys[0] > 720.0f) && (xs[1] < 0.0f || xs[1] > 1280.0f || ys[1] < 0.0f || ys[1] > 720.0f) && (xs[2] < 0.0f || xs[2] > 1280.0f || ys[2] < 0.0f || ys[2] > 720.0f)) return;
+    
+    if (maxx < 0.0f || minx > 1280.0f || maxy < 0.0f || miny > 1280.f) return;
+    
+    if (minx < 0.0f) minx = 0.0f;
+    if (maxx > 1280.0f) maxx = 1280.0f;
+    if (miny < 0.0f) miny = 0.0f;
+    if (maxy > 720.0f) maxy = 720.0f;
     
     float a1;
     float a2;
@@ -69,20 +78,23 @@ void shader(SDL_Texture *framebuffer, SDL_Renderer *renderer, Vector2 *p1, Vecto
     
     a1 = triangle_area(p1, p2, p3);
     
-    for (float x = minx; x < maxx; ++x)
+    for (int x = (int)minx; x < (int)maxx + 1; ++x)
         {
-            for (float y = miny; y < maxy; ++y)
+            for (int y = (int)miny; y < (int)maxy + 1; ++y)
                 {
-                    Vector2 point = { .p = { x, y } };
-                    a2 = triangle_area(&point, p1, p2);
-                    a3 = triangle_area(&point, p2, p3);
-                    a4 = triangle_area(&point, p1, p3);
                     
-                    int _y = (int)y;
-                    int _x = (int)x; 
-                    if (fabsf((a2 + a3 + a4) - a1) < 0.1f)
+                    int pix_pos = (y * 1280) + x;
+                    if (y >= 0 && y < 720 && x >= 0 && x < 1280)
                         {
-                            pix_array[(_y * 1280) + _x] = 0xFF0000FF;
+                           Vector2 point = { .p = { x, y } };
+                           a2 = triangle_area(&point, p1, p2);
+                           a3 = triangle_area(&point, p2, p3);
+                           a4 = triangle_area(&point, p1, p3);
+                        
+                           if (fabsf((a2 + a3 + a4) - a1) <= 0.1f)
+                               {
+                                   pix_array[pix_pos] = 0xFF0000FF;
+                               } 
                         }
                 }
         }
@@ -116,8 +128,8 @@ Vector2 translate_Z(float x, float y, float z)
     return (Vector2){
         .p = 
          {
-             (x / z) * 150.0f,
-             (y / z) * 150.0f
+             (x / z) * 250.0f,
+             (y / z) * 250.0f
          }
     };
 }
@@ -141,15 +153,94 @@ void vertex_processing(Mesh *mesh, Cam *camera, Vector3 new_verts[])
             float perspy = (mesh->verts[i].y + mesh->centre.y) - (camera->pos.y);
             float perspz = (mesh->verts[i].z + mesh->centre.z) - (camera->pos.z);
             
-            // returns x, z
             Vector2 _yrot = yrotate(perspx, perspz, camera->xrot);
-            // returns y, z
             Vector2 _xrot = xrotate(perspy, _yrot.p[1], camera->yrot);
             
             new_verts[i].x = _yrot.p[0];
             new_verts[i].y = _xrot.p[0];
             new_verts[i].z = _xrot.p[1];
         }
+}
+
+LineEqu line_equation(float x1, float y1, float x2, float y2)
+{
+    LineEqu le;
+    le.m = (y2 - y1) / (x2 - x1);
+    
+    le.x1 = x1;
+    le.y1 = y1;
+    
+    return le;
+}
+
+float find_x(LineEqu *le, float y)
+{    
+    return (float)((y - le->y1) / le->m) + le->x1;
+}
+
+float find_y(LineEqu *le, float x)
+{
+    return (float)(le->m * (x - le->x1)) + le->y1;
+}
+
+Points2 get_points(Vector2 *p1, Vector2 *p2, Vector2 *op3)
+{
+    
+    LineEqu p1_le = line_equation(p1->p[0], p1->p[1], op3->p[0], op3->p[1]);
+    LineEqu p2_le = line_equation(p2->p[0], p2->p[1], op3->p[0], op3->p[1]);
+
+    float xp1;
+    float yp1;
+    
+    float xp2;
+    float yp2;
+    
+    bool yset = false;
+    
+    if (op3->p[0] < 0.0f)
+        {
+            xp1 = 0.0f;
+            xp2 = 0.0f;
+            
+            yp1 = find_y(&p1_le, xp1);
+            yp2 = find_y(&p2_le, xp2);
+            
+            yset = true;
+        }
+    else if (op3->p[0] > 1280.0f)
+        {
+            xp1 = 1280.0f;
+            xp2 = 1280.0f;
+            
+            yp1 = find_y(&p1_le, xp1);
+            yp2 = find_y(&p2_le, xp2);
+            
+            yset = true;
+        }
+    if (op3->p[1] < 0.0f && !yset)
+        {
+            yp1 = 0.0f;
+            yp2 = 0.0f;
+            
+            xp1 = find_x(&p1_le, yp1);
+            xp2 = find_x(&p2_le, yp2);
+        }
+    else if (op3->p[1] > 720.0f && !yset)
+        {
+            yp1 = 720.0f;
+            yp2 = 720.0f;
+            
+            xp1 = find_x(&p1_le, yp1);
+            xp2 = find_x(&p2_le, yp2);
+        }
+        
+    return (Points2){
+        .x1 = xp1,
+        .y1 = yp1,
+        
+        .x2 = xp2,
+        .y2 = yp2  
+    };
 }
 
 void render(SDL_Texture *framebuffer, SDL_Renderer *renderer, Mesh *mesh, Vector3 new_verts[])
@@ -169,24 +260,185 @@ void render(SDL_Texture *framebuffer, SDL_Renderer *renderer, Mesh *mesh, Vector
                     int i1 = mesh->indexes[i - 1];
                     int i2 = mesh->indexes[i - 2];
                     
-                    
                     Vector3 p1 = new_verts[i0];
                     Vector3 p2 = new_verts[i1];
                     Vector3 p3 = new_verts[i2];
-                    if (!(p1.z <= 0.1f || p2.z <= 0.1f || p3.z <= 0.1f))
+                    
+                    Vector2 tmp1 = translate_Z(p1.x, p1.y, p1.z);
+                    Vector2 r1 = translate_coord(tmp1.p[0], tmp1.p[1]);
+                    
+                    Vector2 tmp2 = translate_Z(p2.x, p2.y, p2.z);
+                    Vector2 r2 = translate_coord(tmp2.p[0], tmp2.p[1]);
+                    
+                    Vector2 tmp3 = translate_Z(p3.x, p3.y, p3.z);
+                    Vector2 r3 = translate_coord(tmp3.p[0], tmp3.p[1]);
+                    
+                    bool oob_p1 = p1.z < 0.01f;
+                    bool oob_p2 = p2.z < 0.01f;
+                    bool oob_p3 = p3.z < 0.01f;
+                    
+                    if (!(oob_p1 || oob_p2 || oob_p3))
                         {
-                            Vector2 tmp1 = translate_Z(p1.x, p1.y, p1.z);
-                            Vector2 r1 = translate_coord(tmp1.p[0], tmp1.p[1]);
-                            
-                            Vector2 tmp2 = translate_Z(p2.x, p2.y, p2.z);
-                            Vector2 r2 = translate_coord(tmp2.p[0], tmp2.p[1]);
-                            
-                            Vector2 tmp3 = translate_Z(p3.x, p3.y, p3.z);
-                            Vector2 r3 = translate_coord(tmp3.p[0], tmp3.p[1]);
-                            
                             shader(framebuffer, renderer, &r1, &r2, &r3, pix_array);
                         }
-                    
+                    else 
+                        {
+                            // two points are in-bounds
+                            int cond = oob_p1 + oob_p2 + oob_p3;
+                            if (cond == 1)
+                                {
+                                    if (!oob_p1 && !oob_p2)
+                                        {
+                                             float t1 = (0.01f - p1.z) / (p3.z - p1.z);
+                                             float t2 = (0.01f - p2.z) / (p3.z - p2.z);
+                                             
+                                             Vector3 inters1;
+                                             Vector3 inters2;
+                                             
+                                             inters1.x = p1.x + t1 * (p3.x - p1.x);
+                                             inters1.y = p1.y + t1 * (p3.y - p1.y);
+                                             inters1.z = 0.01f;
+                                             
+                                             inters2.x = p2.x + t2 * (p3.x - p2.x);
+                                             inters2.y = p2.y + t2 * (p3.y - p2.y);
+                                             inters2.z = 0.01f;
+                                             
+                                             Vector2 tmp_i1 = translate_Z(inters1.x, inters1.y, inters1.z); 
+                                             Vector2 i_r1 = translate_coord(tmp_i1.p[0], tmp_i1.p[1]);
+                                             
+                                             Vector2 tmp_i2 = translate_Z(inters2.x, inters2.y, inters2.z); 
+                                             Vector2 i_r2 = translate_coord(tmp_i2.p[0], tmp_i2.p[1]);
+                                             
+                                             shader(framebuffer, renderer, &r1, &r2, &i_r1, pix_array);
+                                             shader(framebuffer, renderer, &r2, &i_r2, &i_r1, pix_array);
+                                        }
+                                    else if (!oob_p2 && !oob_p3)
+                                        {
+                                            float t1 = (0.01f - p2.z) / (p1.z - p2.z);
+                                            float t2 = (0.01f - p3.z) / (p1.z - p3.z);
+                                            
+                                            Vector3 inters1;
+                                            Vector3 inters2;
+                                         
+                                            inters1.x = p2.x + t1 * (p1.x - p2.x);
+                                            inters1.y = p2.y + t1 * (p1.y - p2.y);
+                                            inters1.z = 0.01f;
+                                             
+                                            inters2.x = p3.x + t2 * (p1.x - p3.x);
+                                            inters2.y = p3.y + t2 * (p1.y - p3.y);
+                                            inters2.z = 0.01f;
+                                             
+                                            Vector2 tmp_i1 = translate_Z(inters1.x, inters1.y, inters1.z); 
+                                            Vector2 i_r1 = translate_coord(tmp_i1.p[0], tmp_i1.p[1]);
+                                             
+                                            Vector2 tmp_i2 = translate_Z(inters2.x, inters2.y, inters2.z); 
+                                            Vector2 i_r2 = translate_coord(tmp_i2.p[0], tmp_i2.p[1]);
+                                             
+                                            shader(framebuffer, renderer, &r2, &r3, &i_r1, pix_array);
+                                            shader(framebuffer, renderer, &r2, &i_r2, &i_r1, pix_array); 
+                                        }
+                                    else if (!oob_p1 && !oob_p3)
+                                        {
+                                            float t1 = (0.01f - p1.z) / (p2.z - p1.z);
+                                            float t2 = (0.01f - p3.z) / (p2.z - p3.z);
+                                             
+                                            Vector3 inters1;
+                                            Vector3 inters2;
+                                             
+                                            inters1.x = p1.x + t1 * (p2.x - p1.x);
+                                            inters1.y = p1.y + t1 * (p2.y - p1.y);
+                                            inters1.z = 0.01f;
+                                             
+                                            inters2.x = p3.x + t2 * (p2.x - p3.x);
+                                            inters2.y = p3.y + t2 * (p2.y - p3.y);
+                                            inters2.z = 0.01f;
+                                             
+                                            Vector2 tmp_i1 = translate_Z(inters1.x, inters1.y, inters1.z); 
+                                            Vector2 i_r1 = translate_coord(tmp_i1.p[0], tmp_i1.p[1]);
+                                             
+                                            Vector2 tmp_i2 = translate_Z(inters2.x, inters2.y, inters2.z); 
+                                            Vector2 i_r2 = translate_coord(tmp_i2.p[0], tmp_i2.p[1]);
+                                             
+                                            shader(framebuffer, renderer, &r1, &r3, &i_r1, pix_array);
+                                            shader(framebuffer, renderer, &r1, &i_r2, &i_r2, pix_array); 
+                                        }
+                                }
+                            else if (cond == 2)
+                                {
+                                    if (!oob_p1)
+                                        {
+                                             float t1 = (0.01f - p1.z) / (p2.z - p1.z);
+                                             float t2 = (0.01f - p1.z) / (p3.z - p1.z);
+                                             
+                                             Vector3 inters1;
+                                             Vector3 inters2;
+                                             
+                                             inters1.x = p1.x + t1 * (p2.x - p1.x);
+                                             inters1.y = p1.y + t1 * (p2.y - p1.y);
+                                             inters1.z = 0.01f;
+                                             
+                                             inters2.x = p1.x + t2 * (p3.x - p1.x);
+                                             inters2.y = p1.y + t2 * (p3.y - p1.y);
+                                             inters2.z = 0.01f;
+                                             
+                                             Vector2 tmp_i1 = translate_Z(inters1.x, inters1.y, inters1.z); 
+                                             Vector2 i_r1 = translate_coord(tmp_i1.p[0], tmp_i1.p[1]);
+                                             
+                                             Vector2 tmp_i2 = translate_Z(inters2.x, inters2.y, inters2.z); 
+                                             Vector2 i_r2 = translate_coord(tmp_i2.p[0], tmp_i2.p[1]);
+                                             
+                                             shader(framebuffer, renderer, &r1, &i_r1, &i_r2, pix_array);
+                                        }
+                                    else if (!oob_p2)
+                                        {
+                                            float t1 = (0.01f - p2.z) / (p1.z - p2.z);
+                                            float t2 = (0.01f - p2.z) / (p3.z - p2.z);
+                                             
+                                            Vector3 inters1;
+                                            Vector3 inters2;
+                                             
+                                            inters1.x = p2.x + t1 * (p1.x - p2.x);
+                                            inters1.y = p2.y + t1 * (p1.y - p2.y);
+                                            inters1.z = 0.01f;
+                                             
+                                            inters2.x = p2.x + t2 * (p3.x - p2.x);
+                                            inters2.y = p2.y + t2 * (p3.y - p2.y);
+                                            inters2.z = 0.01f;
+                                             
+                                            Vector2 tmp_i1 = translate_Z(inters1.x, inters1.y, inters1.z); 
+                                            Vector2 i_r1 = translate_coord(tmp_i1.p[0], tmp_i1.p[1]);
+                                             
+                                            Vector2 tmp_i2 = translate_Z(inters2.x, inters2.y, inters2.z); 
+                                            Vector2 i_r2 = translate_coord(tmp_i2.p[0], tmp_i2.p[1]);
+                                             
+                                            shader(framebuffer, renderer, &r2, &i_r1, &i_r2, pix_array); 
+                                        }
+                                    else if (!oob_p3)
+                                        {
+                                            float t1 = (0.01f - p3.z) / (p1.z - p3.z);
+                                            float t2 = (0.01f - p3.z) / (p2.z - p3.z);
+                                             
+                                            Vector3 inters1;
+                                            Vector3 inters2;
+                                             
+                                            inters1.x = p3.x + t1 * (p1.x - p3.x);
+                                            inters1.y = p3.y + t1 * (p1.y - p3.y);
+                                            inters1.z = 0.01f;
+                                             
+                                            inters2.x = p3.x + t2 * (p2.x - p3.x);
+                                            inters2.y = p3.y + t2 * (p2.y - p3.y);
+                                            inters2.z = 0.01f;
+                                             
+                                            Vector2 tmp_i1 = translate_Z(inters1.x, inters1.y, inters1.z); 
+                                            Vector2 i_r1 = translate_coord(tmp_i1.p[0], tmp_i1.p[1]);
+                                             
+                                            Vector2 tmp_i2 = translate_Z(inters2.x, inters2.y, inters2.z); 
+                                            Vector2 i_r2 = translate_coord(tmp_i2.p[0], tmp_i2.p[1]);
+                                             
+                                            shader(framebuffer, renderer, &r3, &i_r1, &i_r2, pix_array); 
+                                        }
+                                }
+                        }
                 }
         }
         

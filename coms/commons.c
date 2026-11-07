@@ -12,6 +12,22 @@ typedef struct Vector2
     float p[2];
 } Vector2;
 
+typedef struct LineEqu
+{
+    float m;
+    float x1;
+    float y1;
+    
+} LineEqu;
+
+typedef struct Points2
+{
+    float x1;
+    float y1;
+    
+    float x2;
+    float y2;
+} Points2;
 
 typedef struct Mesh
 {
@@ -23,7 +39,7 @@ typedef struct Mesh
     int indexes[300];
     int indexes_count;
     
-}Mesh;
+} Mesh;
 
 Mesh create_cube(float width, float height, float depth, float cenx, float ceny, float cenz)
 {

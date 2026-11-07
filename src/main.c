@@ -71,7 +71,6 @@ int main(int argc, char* argv[])
         
         while (is_running)
             {
-                printf("%f\n", camera.xrot);
                 Uint64 currt = SDL_GetTicks();
                 
                 float dt = (float)(currt - prevt) / 1000.0f;
@@ -100,7 +99,7 @@ int main(int argc, char* argv[])
                 //SDL_WarpMouseInWindow(window, (float)1280 / 2, (float)720 / 2);
                 
                     
-                        
+                SDL_RenderClear(renderer);
                     
                 SDL_SetRenderDrawColor(renderer, 210, 210, 210, 255);
                 SDL_RenderClear(renderer);
@@ -111,6 +110,9 @@ int main(int argc, char* argv[])
                 //shader(framebuffer, renderer, p1_ptr, p2_ptr, p3_ptr);
             
                 SDL_RenderPresent(renderer);
+                
+                float fps = (dt > 0) ? 1000.0f / dt : 0.0f;
+                printf("%f\n", fps);
             }
         
         SDL_DestroyRenderer(renderer);

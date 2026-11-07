@@ -13,6 +13,23 @@ typedef struct Vector2
     float p[2];
 } Vector2;
 
+typedef struct LineEqu
+{
+    float m;
+    float x1;
+    float y1;
+    
+} LineEqu;
+
+typedef struct Points2
+{
+    float x1;
+    float y1;
+    
+    float x2;
+    float y2;
+} Points2;
+
 typedef struct Mesh
 {
     Vector3 verts[100];
