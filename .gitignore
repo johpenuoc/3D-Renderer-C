@@ -1,8 +1,8 @@
 build/
 
-.o
-.exe
-.out
+*.o
+*.exe
+*.out
 
 .DS_Store
 Thumbs.db
